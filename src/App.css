@@ -126,3 +126,62 @@ body {
 }
 .btn-add-confirm:hover { background-color: #026aa7; }
 .btn-add-cancel { background: transparent; border: none; color: #6b778c; cursor: pointer; font-size: 18px; }
+
+/* =========================================
+   RESPONSIVE DESIGN (MÓVIL)
+   ========================================= */
+
+@media (max-width: 768px) {
+  /* 1. Ajustes del Contenedor Principal */
+  .board-container {
+    justify-content: flex-start; /* Alineamos a la izquierda, no al centro */
+    padding: 15px; /* Menos relleno */
+    gap: 15px; /* Menos espacio entre columnas */
+    
+    /* Magia del Scroll Snap */
+    scroll-snap-type: x mandatory; /* Obliga a detenerse en una columna */
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iPhone */
+  }
+
+  /* 2. Ajustes de la Columna */
+  .column-container {
+    /* Calculamos el ancho: 85% de la pantalla para ver un poquito de la siguiente columna */
+    min-width: 85vw; 
+    max-width: 85vw;
+    
+    /* Ajuste de altura para que quepa en pantallas móviles */
+    max-height: calc(100vh - 90px); 
+    
+    /* Esto hace que la columna se centre automáticamente al soltar el scroll */
+    scroll-snap-align: center;
+    scroll-margin: 0 15px; /* Margen de seguridad */
+  }
+
+  /* 3. Ajustes del Header */
+  .app-header {
+    padding: 0 15px;
+  }
+  
+  .app-logo {
+    font-size: 18px; /* Texto un poco más pequeño */
+  }
+
+  /* 4. Ajustes de las Tareas */
+  .task-container {
+    padding: 12px; /* Área de toque más grande para dedos */
+    font-size: 16px; /* Texto más legible */
+  }
+
+  /* 5. Ajustes de Botones de Acción (Lápiz y Basura) */
+  /* En móvil no hay "hover", así que los mostramos siempre o los hacemos más grandes */
+  .task-actions {
+    opacity: 1; /* Siempre visibles en móvil */
+    background: rgba(255, 255, 255, 0.9);
+    padding-left: 5px;
+  }
+  
+  .btn-action {
+    padding: 8px; /* Botones más fáciles de tocar */
+    font-size: 16px;
+  }
+}
