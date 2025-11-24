@@ -58,3 +58,32 @@ Usamos el método `Array.prototype.splice()` para mover los IDs de las tareas.
 Utilizamos una combinación de `useState` (con inicialización perezosa) y `useEffect` para sincronizar datos:
 * **Inicialización:** `useState(() => ...)` verifica si existe 'trello-state' en el navegador antes de cargar los datos por defecto.
 * **Sincronización:** `useEffect` escucha cualquier cambio en `data` y actualiza automáticamente el LocalStorage. Esto garantiza que el usuario nunca pierda su progreso.
+
+## 🔌 Integración Backend (Python & PostgreSQL)
+
+El proyecto evolucionó de una arquitectura "Client-Side Only" a una arquitectura **Full Stack Serverless**.
+
+### Tecnologías Backend
+* **Lenguaje:** Python 3.9+
+* **Framework:** FastAPI (Uvicorn como servidor ASGI).
+* **Base de Datos:** PostgreSQL (Alojada en Neon Tech).
+* **Driver:** `psycopg2-binary` para la conexión SQL.
+
+### Flujo de Datos
+1.  **Frontend (React):** Envía peticiones HTTP (`GET`/`POST`) a `/api/tablero`.
+2.  **Proxy (Vite/Vercel):** Redirige las peticiones entrantes a la carpeta `api/`.
+3.  **Backend (Python):**
+    * Recibe el JSON.
+    * Valida la estructura con `Pydantic`.
+    * Ejecuta una consulta SQL (`UPSERT`) para guardar el estado completo en la tabla `trello_data`.
+4.  **Base de Datos (Neon):** Almacena el JSON de forma persistente.
+
+### Configuración de Base de Datos
+La conexión se realiza mediante variables de entorno seguras (`DATABASE_URL`).
+El sistema crea automáticamente la tabla si no existe al iniciar la aplicación:
+
+```sql
+CREATE TABLE IF NOT EXISTS trello_data (
+    id INTEGER PRIMARY KEY,
+    data JSONB
+);
