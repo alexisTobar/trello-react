@@ -6,18 +6,47 @@ import { DragDropContext } from '@hello-pangea/dnd';
 import './App.css';
 
 export default function App() {
-  // LocalStorage
-  const [data, setData] = useState(() => {
-    const savedData = localStorage.getItem('trello-state');
-    return savedData ? JSON.parse(savedData) : initialData;
-  });
+  // --- 1. ESTADOS (HOOKS) SIEMPRE ARRIBA ---
+  
+  // Estado para el mensaje de Python
+  const [mensajePython, setMensajePython] = useState("");
 
-  // Guardar 
+  // Estado principal de las tareas (con LocalStorage)
+  const [data, setData] = useState(null);
+
+  // --- 2. EFECTOS (HOOKS) DESPUÉS DE LOS ESTADOS ---
+
+  // Efecto A: Conectar con Python (Solo al cargar la página)
   useEffect(() => {
-    localStorage.setItem('trello-state', JSON.stringify(data));
+    fetch('/api/tablero')
+      .then(res => res.json())
+      .then(datosServidor => {
+        console.log("Datos recibidos desde pythpom:", datosServidor);
+        setData(datosServidor);
+      })
+      .catch(error => console.error("Error cargando el tablero:", error));
+  }, []); // Array vacío = Ejecutar solo una vez
+
+  // Efecto B: Guardar en LocalStorage (Cada vez que cambia 'data')
+  useEffect(() => {
+    // Solo guardamos si 'data' tiene algo (para evitar guardar null al inicio)
+    if (data) {
+      fetch('/api/tablero', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data), // Enviamos todo el objeto a Python
+      })
+      .then(res => res.json())
+      .then(resp => console.log("Guardado en Python:", resp))
+      .catch(err => console.error("Error guardando:", err));
+    }
   }, [data]);
 
-  // CREAR 
+
+  // --- 3. FUNCIONES LÓGICAS (CRUD & DND) ---
+
   const addTask = (columnId, content) => {
     const newTaskId = uuidv4();
     const newTask = { id: newTaskId, content: content };
@@ -35,7 +64,6 @@ export default function App() {
     });
   };
 
-  // BORRAR 
   const deleteTask = (taskId, columnId) => {
     const column = data.columns[columnId];
     const newTaskIds = column.taskIds.filter((id) => id !== taskId);
@@ -51,7 +79,6 @@ export default function App() {
     });
   };
 
-  // EDITAR
   const updateTask = (taskId, newContent) => {
     const newTasks = {
       ...data.tasks,
@@ -60,7 +87,6 @@ export default function App() {
     setData({ ...data, tasks: newTasks });
   };
 
-  // DRAG & DROP 
   const onDragEnd = (result) => {
     const { destination, source, draggableId } = result;
 
@@ -104,11 +130,25 @@ export default function App() {
     });
   };
 
+  if (!data) {
+    return (
+      <div style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>
+        <h2>Pruebas con el servidos de python</h2>
+      </div>
+    );
+  }
+  // --- 4. RENDERIZADO (JSX) ---
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <header className="app-header">
         <span className="app-logo">📊 Trello Clone React</span>
+        
+        {/* Aquí mostramos el mensaje de Python */}
+        <span style={{ marginLeft: '20px', fontSize: '12px', color: '#4ade80', fontWeight: 'bold' }}>
+          {mensajePython ? `✅ ${mensajePython}` : "Python"}
+        </span>
       </header>
+      
       <div className="board-container">
         {data.columnOrder.map((columnId) => {
           const column = data.columns[columnId];
